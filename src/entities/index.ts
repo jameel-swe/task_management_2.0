@@ -1,0 +1,15 @@
+export { User } from './user.entity';
+export { Project } from './project.entity';
+export { ProjectMember } from './project-member.entity';
+export { Task } from './task.entity';
+export { TaskApproval } from './task-approval.entity';
+export { ActivityLog } from './activity-log.entity';
+export { RefreshToken } from './refresh-token.entity';
+import { User } from './user.entity';
+import { Project } from './project.entity';
+import { ProjectMember } from './project-member.entity';
+import { Task } from './task.entity';
+import { TaskApproval } from './task-approval.entity';
+import { ActivityLog } from './activity-log.entity';
+import { RefreshToken } from './refresh-token.entity';
+export const entities = [User, Project, ProjectMember, Task, TaskApproval, ActivityLog, RefreshToken];
