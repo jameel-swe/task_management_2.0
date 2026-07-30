@@ -10,7 +10,7 @@ export class TasksController {
   @Get(':id') get(@Param('id') id: string, @CurrentUser() user: any) { return this.service.get(id, user); }
   @Patch(':id') update(@Param('id') id: string, @Body() dto: any, @CurrentUser() user: any) { return this.service.update(id, dto, user); }
   @Delete(':id') remove(@Param('id') id: string, @CurrentUser() user: any) { return this.service.remove(id, user); }
-  @Post(':id/assign') assign(@Param('id') id: string, @Body('assigneeId') assigneeId: string | null, @CurrentUser() user: any) { return this.service.assign(id, assigneeId, user); }
-  @Post(':id/submit-for-approval') submit(@Param('id') id: string, @Body('approverIds') approverIds: string[], @CurrentUser() user: any) { return this.service.submitApproval(id, approverIds, user); }
+  @Post(':id/submit-for-approval') submit(@Param('id') id: string, @Body('approverIds') ids: string[], @CurrentUser() user: any) { return this.service.submitApproval(id, ids, user); }
   @Patch(':id/approvals/:approvalId') decide(@Param('id') id: string, @Param('approvalId') approvalId: string, @Body() body: any) { return this.service.approvalDecision(id, approvalId, body.decision, body.comment); }
+  @Get(':id/workflow-status') status(@Param('id') id: string) { return this.service.workflowStatus(id); }
 }
