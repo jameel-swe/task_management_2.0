@@ -10,28 +10,16 @@ import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { TemporalModule } from './temporal/temporal.module';
 import { HealthModule } from './health/health.module';
+import { AiModule } from './ai/ai.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
-    TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres' as const,
-        url: config.get<string>('databaseUrl'),
-        entities,
-        synchronize: false,
-        migrationsRun: false,
-        migrations: ['dist/database/migrations/*.js']
-      })
-    }),
-    AuthModule, UsersModule, ProjectsModule, TasksModule, TemporalModule, HealthModule
+    TypeOrmModule.forRootAsync({ inject: [ConfigService], useFactory: (config: ConfigService) => ({ type: 'postgres' as const, url: config.get<string>('databaseUrl'), entities, synchronize: false, migrationsRun: false, migrations: ['dist/database/migrations/*.js'] }) }),
+    AuthModule, UsersModule, ProjectsModule, TasksModule, TemporalModule, HealthModule, AiModule
   ],
-  providers: [
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
-    { provide: APP_GUARD, useClass: RolesGuard }
-  ]
+  providers: [{ provide: APP_GUARD, useClass: JwtAuthGuard }, { provide: APP_GUARD, useClass: RolesGuard }]
 })
 export class AppModule {}
