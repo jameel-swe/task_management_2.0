@@ -5,5 +5,6 @@ import { ProjectsModule } from '../projects/projects.module';
 import { TemporalModule } from '../temporal/temporal.module';
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
-@Module({ imports: [TypeOrmModule.forFeature([Task, TaskApproval, ActivityLog, ProjectMember]), ProjectsModule, TemporalModule], providers: [TasksService], controllers: [TasksController] })
+import { TaskAccessGuard } from './guards/task-access.guard';
+@Module({ imports: [TypeOrmModule.forFeature([Task, TaskApproval, ActivityLog, ProjectMember]), ProjectsModule, TemporalModule], providers: [TasksService, TaskAccessGuard], controllers: [TasksController] })
 export class TasksModule {}

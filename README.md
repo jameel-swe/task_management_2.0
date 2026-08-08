@@ -1,15 +1,16 @@
 # Task Management API + Temporal Workflow Engine
 
-Production-grade task/project management API built with NestJS, PostgreSQL, TypeORM, JWT, Docker, Swagger, and Temporal.
+NestJS + PostgreSQL + TypeORM + JWT + Temporal task/project API.
 
-## Status
+## Build and run
 
-Implementation is pushed phase by phase. Migrations are mandatory: TypeORM `synchronize` is disabled.
+Copy `.env.example` to `.env`, then run `npm install`, `npm run migration:run`, `npm run seed`, `npm run start:dev`, and `npm run worker` in separate terminals. Docker uses `npm install` in the build stages because this repository intentionally does not commit a lockfile yet; generate and commit one with Node/npm before production deployment.
 
-## Local setup
+## Hardening notes
 
-1. Copy `.env.example` to `.env`.
-2. Start PostgreSQL and Temporal (`temporal server start-dev` exposes the UI on `:8233`).
-3. Run `npm install`, `npm run migration:run`, `npm run seed`.
-4. Run the API with `npm run start:dev` and the worker with `npm run worker`.
-5. Open Swagger at `http://localhost:3000/docs`.
+- Global validation rejects non-whitelisted request fields.
+- Task mutation routes use `TaskAccessGuard`; approval decisions verify the assigned `approverId` and reject duplicate decisions.
+- Assignees and approvers must already be members of the project.
+- Workflow status checks enforce project membership.
+- The Temporal worker initializes the TypeORM DataSource before registering activities.
+- Empty approval chains and arbitrary decision strings are rejected.

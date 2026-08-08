@@ -1,6 +1,6 @@
 {
   "name": "task-management-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "Production-grade NestJS task management API with Temporal workflows",
   "scripts": {
@@ -15,8 +15,8 @@
     "migration:run": "npm run typeorm -- migration:run",
     "migration:revert": "npm run typeorm -- migration:revert",
     "seed": "ts-node -r tsconfig-paths/register src/database/seeds/seed.ts",
-    "test": "jest",
-    "test:cov": "jest --coverage",
+    "test": "jest --runInBand",
+    "test:cov": "jest --coverage --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand"
   },
   "dependencies": {
