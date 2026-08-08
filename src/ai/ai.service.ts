@@ -24,37 +24,43 @@ export class AiService {
     const conversation = this.getConversation(conversationId);
     conversation.messages.push({ role: 'user', content: message });
     const first = await this.complete(conversation.messages);
-    conversation.messages.push(first.message);
+    conversation.messages.push(first);
 
-    if (!first.message.tool_calls?.length) return { conversationId, reply: first.message.content ?? 'I could not form a response.', actionTaken: null };
+    if (!first.tool_calls?.length) return { conversationId, reply: first.content ?? 'I could not form a response.', actionTaken: null };
 
     const actions: unknown[] = [];
-    for (const call of first.message.tool_calls) {
+    for (const call of first.tool_calls) {
       let result: unknown;
       try {
         const args = JSON.parse(call.function.arguments);
         result = await this.execute(call.function.name, args, user);
         actions.push({ tool: call.function.name, result });
       } catch (error) {
-        const message = error instanceof Error ? error.message : 'Action failed';
-        result = { error: message };
-        actions.push({ tool: call.function.name, error: message });
+        const errorMessage = error instanceof Error ? error.message : 'Action failed';
+        result = { error: errorMessage };
+        actions.push({ tool: call.function.name, error: errorMessage });
       }
       conversation.messages.push({ role: 'tool', tool_call_id: call.id, name: call.function.name, content: JSON.stringify(result) });
     }
 
     const final = await this.complete(conversation.messages);
-    conversation.messages.push(final.message);
-    return { conversationId, reply: final.message.content ?? 'Done.', actionTaken: actions };
+    conversation.messages.push(final);
+    return { conversationId, reply: final.content ?? 'Done.', actionTaken: actions };
   }
 
-  private async complete(messages: ChatMessage[]) {
+  private async complete(messages: ChatMessage[]): Promise<ChatMessage> {
     const key = this.config.get<string>('OPENAI_API_KEY') ?? process.env.OPENAI_API_KEY;
     if (!key) throw new BadGatewayException('OPENAI_API_KEY is not configured');
-    const response = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ model: this.config.get<string>('OPENAI_MODEL') ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini', temperature: 0.1, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages.slice(-this.maxMessages)], tools: TASK_ASSISTANT_TOOLS, tool_choice: 'auto' }) });
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: this.config.get<string>('OPENAI_MODEL') ?? process.env.OPENAI_MODEL ?? 'gpt-4o-mini', temperature: 0.1, messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...messages.slice(-this.maxMessages)], tools: TASK_ASSISTANT_TOOLS, tool_choice: 'auto' })
+    });
     if (!response.ok) { this.logger.error(`OpenAI returned ${response.status}`); throw new BadGatewayException('OpenAI request failed'); }
-    const body = await response.json() as any;
-    return body.choices[0].message as { message: ChatMessage };
+    const body = await response.json() as { choices?: Array<{ message?: ChatMessage }> };
+    const assistantMessage = body.choices?.[0]?.message;
+    if (!assistantMessage) throw new BadGatewayException('OpenAI returned no assistant message');
+    return assistantMessage;
   }
 
   private getConversation(id: string) { let conversation = this.conversations.get(id); if (!conversation) { conversation = { messages: [], updatedAt: Date.now() }; this.conversations.set(id, conversation); } conversation.updatedAt = Date.now(); return conversation; }
